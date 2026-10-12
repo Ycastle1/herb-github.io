@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getPosts, path } from '../lib/posts';
+const posts = await getPosts();
+const tags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
+---
+<BaseLayout>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="status-dot"></span> A DEVELOPER'S FIELD NOTES</p>
+      <h1>오늘의 배움을,<br /><span>내일의 코드로.</span></h1>
+      <p class="hero-description">만들면서 배우고, 기록하면서 깊어집니다.<br />개발하며 만난 문제와 작은 발견을 차곡차곡 담습니다.</p>
+      <a class="text-link" href="#articles">기록 둘러보기 <span aria-hidden="true">↓</span></a>
+    </div>
+    <div class="hero-note" aria-hidden="true">
+      <div class="note-top"><span>~/herb/notes</span><span>● ● ●</span></div>
+      <div class="note-code"><span class="code-comment">// a little better, every day</span><br /><span class="code-keyword">const</span> growth = &#123;<br />&nbsp; curiosity: <span class="code-string">'always'</span>,<br />&nbsp; learning: <span class="code-string">'in progress'</span>,<br />&nbsp; notes: <span class="code-string">'worth sharing'</span><br />&#125;;</div>
+      <div class="note-bottom"><span class="sprout">✳</span><span>keep learning.<br />keep growing.</span><span class="note-number">001 — ∞</span></div>
+    </div>
+  </section>
+  <section class="articles" id="articles" aria-labelledby="articles-title">
+    <div class="section-heading"><div><p class="eyebrow">THE NOTEBOOK</p><h2 id="articles-title">최근 기록 <span>{posts.length}</span></h2></div><a class="muted-link" href={path('rss.xml')}>RSS 구독 ↗</a></div>
+    <div class="filter-bar" id="filters" hidden>
+      <div class="tag-filters" role="group" aria-label="태그로 글 필터링"><button type="button" data-tag="" aria-pressed="true">전체</button>{tags.map(tag => <button type="button" data-tag={tag} aria-pressed="false">{tag}</button>)}</div>
+      <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="기록 검색…" aria-label="제목, 설명, 태그로 글 검색" /></label>
+    </div>
+    <p id="result-count" class="sr-only" role="status" aria-live="polite"></p>
+    <div class="post-list">{posts.map((post, index) => <PostCard post={post} index={index} />)}</div>
+    {posts.length === 0 && <p class="empty-state">아직 공개된 글이 없습니다. 첫 번째 기록을 준비하고 있어요.</p>}
+    <div id="no-results" class="empty-state" hidden><p>검색 결과가 없습니다.</p><button type="button" id="reset-filters" class="text-link">전체 기록 보기 ↗</button></div>
+    <div class="list-end"><span>•</span> 배움의 기록은 계속됩니다 <span>•</span></div>
+  </section>
+  <script>
+    const filters = document.querySelector<HTMLElement>('#filters');
+    if (filters) filters.hidden = false;
+    const search = document.querySelector<HTMLInputElement>('#search');
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-tag]')];
+    const cards = [...document.querySelectorAll<HTMLElement>('[data-post]')];
+    let selectedTag = '';
+    const filter = () => {
+      const query = search?.value.trim().toLocaleLowerCase() ?? '';
+      let count = 0;
+      for (const card of cards) {
+        const tags: string[] = JSON.parse(card.dataset.tags ?? '[]');
+        const match = (!selectedTag || tags.includes(selectedTag)) && `${card.dataset.title} ${tags.join(' ')}`.toLocaleLowerCase().includes(query);
+        card.hidden = !match;
+        if (match) count++;
+      }
+      buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.tag === selectedTag)));
+      const empty = document.querySelector<HTMLElement>('#no-results');
+      if (empty) empty.hidden = count > 0 || cards.length === 0;
+      const status = document.querySelector('#result-count');
+      if (status) status.textContent = `${count}개의 기록`;
+    };
+    buttons.forEach(button => button.addEventListener('click', () => { selectedTag = button.dataset.tag ?? ''; filter(); }));
+    search?.addEventListener('input', filter);
+    document.querySelector('#reset-filters')?.addEventListener('click', () => { selectedTag = ''; if (search) search.value = ''; filter(); });
+  </script>
+</BaseLayout>

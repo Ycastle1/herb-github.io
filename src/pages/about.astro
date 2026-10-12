@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+<BaseLayout title="소개">
+  <section class="about-section">
+    <p class="eyebrow">BEHIND THE NOTES</p>
+    <h1>반갑습니다.<br />여기는 <span>Herb의 개발 노트</span>입니다.</h1>
+    <p class="about-lead">새롭게 알게 된 것, 오래 고민한 문제,<br />그리고 직접 만들어본 경험을 기록하는 공간입니다.</p>
+    <div class="about-values"><div><span>01 / LEARN</span><h2>이해할 때까지</h2><p>동작하는 코드를 넘어, 왜 그렇게 동작하는지 질문합니다.</p></div><div><span>02 / BUILD</span><h2>직접 만들어보기</h2><p>작은 실험과 프로젝트로 배운 내용을 확인합니다.</p></div><div><span>03 / SHARE</span><h2>다시 꺼내볼 기록</h2><p>미래의 나와 비슷한 고민을 하는 누군가를 위해 남깁니다.</p></div></div>
+    <a class="text-link" href={SITE.github} target="_blank" rel="noreferrer">GitHub에서 만나기 ↗</a>
+  </section>
+</BaseLayout>

@@ -1,0 +1,70 @@
+---
+import { SITE } from '../consts';
+import { path } from '../lib/posts';
+import '../styles/global.css';
+interface Props { title?: string; description?: string; article?: boolean; date?: Date; }
+const { title, description = SITE.description, article = false, date } = Astro.props;
+const fullTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} — 개발자의 기록`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const isAbout = Astro.url.pathname.includes('/about');
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="author" content={SITE.author} />
+    <meta name="theme-color" content="#f7f8f2" />
+    <title>{fullTitle}</title>
+    <link rel="icon" type="image/svg+xml" href={path('favicon.svg')} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={SITE.title} href={path('rss.xml')} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content={SITE.title} />
+    {date && <meta property="article:published_time" content={date.toISOString()} />}
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('theme');
+        document.documentElement.dataset.theme = saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+    <header class="site-header shell">
+      <a class="brand" href={path()} aria-label="herb.log 홈"><span class="brand-icon" aria-hidden="true">h.</span>{SITE.title}<span class="brand-dot">/</span></a>
+      <nav aria-label="메인 메뉴">
+        <a href={path()} aria-current={!isAbout ? 'page' : undefined}>글</a>
+        <a href={path('about/')} aria-current={isAbout ? 'page' : undefined}>소개</a>
+        <a class="github-nav" href={SITE.github} target="_blank" rel="noreferrer">GitHub ↗</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="다크 모드 켜기" aria-pressed="false"><span aria-hidden="true">◐</span></button>
+      </nav>
+    </header>
+    <main id="main" class="shell"><slot /></main>
+    <footer class="site-footer shell">
+      <div><a class="footer-brand" href={path()}>{SITE.title}</a><span>작은 기록이 더 나은 코드를 만듭니다.</span></div>
+      <div><span>© {new Date().getFullYear()} {SITE.author}</span><a href={path('rss.xml')}>RSS ↗</a><a href={SITE.github}>GitHub ↗</a></div>
+    </footer>
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('#theme-toggle');
+      const syncTheme = () => {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        button?.setAttribute('aria-label', dark ? '라이트 모드 켜기' : '다크 모드 켜기');
+        button?.setAttribute('aria-pressed', String(dark));
+      };
+      syncTheme();
+      button?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch {}
+        syncTheme();
+      });
+    </script>
+  </body>
+</html>
